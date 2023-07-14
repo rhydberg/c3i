@@ -1,0 +1,80 @@
+level 0: inspect element. password was in a comment in <div id = "content">
+g9D9cREhslqBKtcA2uocGHPfMZVzeFK6
+
+level 1: inspect element. same as before just used ctrl shift C as right click was disabled.
+h4ubbcXrWqsTo7GGnnUMLppXbOogfBZ7
+
+level 2: found a link to an empty image. but the url was .../files/pixel.png. So i went to .../files. there i found users.txt.
+G6ctbMJ5Nb4cbFwhpMPSvxGHhQ7I6W8Q
+
+level 3: said that <!-- No more information leaks!! Not even Google will find it this time... -->. I accessed the /robots.txt file which tells the search engines which directories to not enter. Over there I found a disallowed folder called s3cr3t. I went there and found users.txt
+Side note: the robots.txt file is there in the top level directory of all websites. from there you can get an idea of the directory strucutre. I found the robots.txt of hello iitk. Went to the /search and found some messages from the system admin to course instructors and also found some articles with instructions for instuctors. for more info: http://www.robotstxt.org/robotstxt.html
+tKOcJIbzM4lTs8hbCmzn5Zr4434fGZQm
+
+level 4: had to change http referer in the request header. Installed extension called Referer Control. Changed it and got access.
+Z0NsrtIkJoKALBCLi5eqFfcRN82Au2oD
+
+level 5: Said that you are not logged in. Found a cookie called loggedin in Network. It was intially set to 0. Went to Applications and set it to 1. Reloaded. Worked.
+fOIvE0MDtPTgRhqmmvvAOt2EfXR6uQgR
+
+level 6: opened the php file. Went to .../includes/secret.inc and found the code
+jmxSiH3SP6Sonf8dv66ng8v1cIEdjXWr
+
+level 7: utilized a file inclusion vulnerability. Basically the source code was including the file supplied to it in the URL query. viz include($_GET['page']); now you can change the ?page= to any page you want access to. In the hints it said that the password is in /etc/natas_webpass/natas8. So i changed the URL to http://natas7.natas.labs.overthewire.org/index.php?page=/etc/natas_webpass/natas8 and bingo.
+a6bZCNYwdKqN5cGP11ZdtPg0iImQQhAB
+
+level 8: simple encoding. used reverse online decoders to find.
+Sda6t0vkOPkM8YeOZkAGVhFoaplvlJFd
+
+level 9: had a line passthru("grep -i $key dictionary.txt"); Now this is susceptible to code injection. if you pass ; cat /etc/natas_webpass/natas10 then it outputs the password since that command gets run.
+D44EcsFkLxPIkAAKLosx8z3hxX1Z4MCE
+
+level 10: similar but this time the characters /[;|&]/ were not allowed. So i just did "" /etc/natas_webpass/natas11. It gave output of the password and then dictionary
+1KFqoJXi6hRaPluAmk8ESDW4fSysRoIg
+
+level 11: Okay this level is tough. There is a php code and I need to find the vulnerability in it. There is a xor encryption function using a key in a cyclic manner. xor is inverse of itself so shouldnt be a problem finding the key. The cookie that exists initially is MGw7JCQ5OC04PT8jOSpqdmkgJ25nbCorKCEkIzlscm5oLSktKCgrbjY= (I needed to use the URL decoded form). This goes into a base64_decode and then through xor_encrypt and then json_decode to recover the original array. json_encode/decode converts from array to string and vice versa. while storing the value of the cookie, the array is passed to json_encode then xor_encrypt and then through base64_encode to create the final value. Let the base64_decode of the cookie be B. Let the json of the array be A. Let the key be K.
+Now A^K=B. By properties of xor, K=A^B. K will be a repeating string. K comes out to KNHL. Now we need an array that says "showpassword"=>"yes", "bgcolor"=>"#ffffff". Find the json encode of this, pass it through xor (now we can use xor since we know the key) pass the result through a base64_encode and we are done. The final value of the cookie comes out to be MGw7JCQ5OC04PT8jOSpqdmk3LT9pYmouLC0nICQ8anZpbS4qLSguKmkz. This level was pretty fun. It took some time. I amd finishing it at 6:53 AM on a Wednesday. My 3rd sem endsems ended today (yesterday).
+YWqo0pjpcXzSIl5NMAVxg12QxeC1w9QG
+
+level 12:  The uploaded file can be of any type not just jpeg (There is no check). You can run php code on it. However the extension of the file is determined by a hidden input field filename. change its extension to .php. Then upload a file containing the php code <?php echo system("cat /etc/natas_webpass/natas12") ?>. Click on the generated link and voila.\
+lW3jYRI02ZKDBb8VtQBU1f6eDRo6WEj9
+
+level 13: similar to level 12, but this time uses exif_imagetype to check if its a jpeg. But exif_imagetype() uses the first few characters to check if it matches the magic number of jpeg. So i just added the magic number of jpeg (FF D8 FF E0) to the php file of level 12 and changed the extension of filename to .php. Worked.
+qPazSJBmrmU7UQJv17MHk1PGC4DxZMEP
+
+level 14: SQL injection attack. Used " or 1=1 # (The # denotes a comment).
+I also wrote a python script to bruteforce the answer.
+TTkaI7AWG4iDERztBcEyKV7kRXH1EZRB
+
+level 15: difficult sql injection.
+Method 1: used sqlmap. sqlmap -u "http://natas15.natas.labs.overthewire.org/index.php" --string="This user exists." --auth-type=Basic --auth-cred=natas15:TTkaI7AWG4iDERztBcEyKV7kRXH1EZRB --data="username=natas16" --level=5 --risk=3 -D natas15 -T users -C username,password --dump
+
+Method 2: automate the checking with a script. This is based on blind sql injection. You use the LIKE keyword of sql combined with whether the website is returning "This user exists" to guess the next characters.
+
+A simple bruteforce (check commented version) takes around 7 minutes.
+A clever optimization is to first check which characters exist in the password which can be done in linear time and then do bruteforce selectively with those characters. This takes roughly 4 minutes.
+
+TRD7iZrd5gATjj9PkPEuaOlfEjHqj32V
+
+
+level 16: Similar to level 9 and 10 but this time the characters [;|&`\'" are not allowed. So i found out that the backtick (`) can be used for command substitution. And its alternative $() is allowed. So basically the strategy is to nest an inner grep command to test the password stored in /etc/natas_webpass. If it returns a postive value then it gets prepended to the query word. Choose the query word such that there is no such word with it as a suffix. I chose "sigma". Write a python script similar to previous level. Used the same optimization as last level.
+
+XkEuChE0SbnKBvH1RU7ksIb9uuLmI7sd
+
+level 17: Similar to the other sqli levels but here there is no output. Can try a time based approach append AND SLEEP(5) to the injection vector, so if the query is true then the server takes more time to reply. Judging by the time is takes for the request we can incrementally figure out the password.
+
+8NEDUUxg8kFgPV84uLwvZkGn6okJQ6aq
+
+level 18: based on session hijacking. There was a session_start() and a PHPSESSID cookie to keep track of the user sessions. The value of PHPSESSID varied from 1 to 640, which is very bruteforce-able. If you are able to figure out the session id of the admin then you are done. Wrote a simple script to do just that. It was 119
+
+8LMJEhKFbMKIL2mxQKjv0aEDdk7zpT0s
+
+level 19: similar to previous level. Just the sessionID was encoded. user was 281. value of cookie was 3238312d61646d696e.
+
+guVaZ3ET35LbgbFMoaN5tFcYT1jEP7UH
+
+level 20: vulenralability in myread. set a payload of anythig\nadmin 1 and it creates a new parameter admin with value 1. Set it once and then reload in the same session to get the admin credentials.
+
+89OWrTkGmiLZLv12JY4tLj2c4FW0xn56
+
+

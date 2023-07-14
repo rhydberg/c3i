@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+level=$1
+line=$(($level + 0))
+p=$(head -n $line passwords | tail -n 1)
+sshpass -p $p ssh krypton$level@krypton.labs.overthewire.org -p 2231

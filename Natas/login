@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+level=$1
+line=$(($level+1))
+uname="natas$level"
+p=$(head -n $level passwords.txt | tail -n 1)
+site="http://natas$level:$p@natas$level.natas.labs.overthewire.org"
+wget --quiet -O - --save-cookies cookies.txt --keep-session-cookies --post-data="username='$uname'&password='$p'" $site
+
+brave $site
+
+
